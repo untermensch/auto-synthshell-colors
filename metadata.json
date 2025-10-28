@@ -3,7 +3,8 @@
   "description": "Integrates with Synth-Shell by andresgongora and changes its colors based on the desktop's current accent color",
   "name": "Auto Synth-Shell Colors",
   "shell-version": [
-    "48"
+    "48",
+    "49"
   ],
   "url": "https://www.github.com/untermensch/auto-synthshell-colors",
   "uuid": "auto-synthshell-colors@untermensch",
