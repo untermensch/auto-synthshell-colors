@@ -13,40 +13,26 @@ export default class AutoSynthColorsExtension extends Extension {
         this._changeId = null;
     }
 
-    enable() {
-        try {
-            this._settings = new Gio.Settings({ schema: INTERFACE_SCHEMA });
-
-            this._changeId = this._settings.connect(
-                'changed::' + ACCENT_COLOR,
-                this._onAccentColorChanged.bind(this)
-            );
-
-
-            this._onAccentColorChanged();
-            log('[auto-synthshell-colors] enabled');
-        } catch (e) {
-            log(`[auto-synthshell-colors] enable error: ${e}`);
-        }
-    }
-
+enable() {
+    this._settings = new Gio.Settings({ schema: INTERFACE_SCHEMA });
+    this._changeId = this._settings.connect(
+        'changed::' + ACCENT_COLOR,
+        this._onAccentColorChanged.bind(this)
+    );
+    this._onAccentColorChanged();
+    console.log('[auto-synthshell-colors] enabled');
+}
     disable() {
-        try {
-
-            if (this._changeId && this._settings) {
-                this._settings.disconnect(this._changeId);
-                this._changeId = null;
-            }
-
-
-            this._restoreDefaultsInMainScript();
-
-            this._settings = null;
-            log('[auto-synthshell-colors] disabled and restored defaults');
-        } catch (e) {
-            log(`[auto-synthshell-colors] disable error: ${e}`);
-        }
+    if (this._changeId && this._settings) {
+        this._settings.disconnect(this._changeId);
+        this._changeId = null;
     }
+
+    this._restoreDefaultsInMainScript();
+    this._settings = null;
+    console.log('[auto-synthshell-colors] disabled and restored defaults');
+}
+
 
     _onAccentColorChanged() {
         try {
@@ -54,7 +40,7 @@ export default class AutoSynthColorsExtension extends Extension {
             const color = this._mapToAllowedColor(accentValue);
             this._setMainScriptToExtensionConfig(color);
         } catch (e) {
-            log(`[auto-synthshell-colors] accent change handler error: ${e}`);
+            console.log(`[auto-synthshell-colors] accent change handler error: ${e}`);
         }
     }
 
@@ -73,18 +59,18 @@ export default class AutoSynthColorsExtension extends Extension {
         const mainFile = Gio.File.new_for_path(mainPath);
 
         if (!mainFile.query_exists(null)) {
-            log(`[auto-synthshell-colors] main script not found: ${mainPath}`);
+            console.log(`[auto-synthshell-colors] main script not found: ${mainPath}`);
             return;
         }
 
         try {
             let [ok, raw] = GLib.file_get_contents(mainPath);
             if (!ok) {
-                log(`[auto-synthshell-colors] cannot read main script: ${mainPath}`);
+                console.log(`[auto-synthshell-colors] cannot read main script: ${mainPath}`);
                 return;
             }
 
-            let contents = imports.byteArray.toString(raw);
+            let contents = new TextDecoder().decode(raw);
             const original = contents;
 
             const extDir = this.dir.get_path();
@@ -105,12 +91,12 @@ export default class AutoSynthColorsExtension extends Extension {
 
             if (contents !== original) {
                 GLib.file_set_contents(mainPath, contents);
-                log(`[auto-synthshell-colors] synth-shell-prompt.sh updated -> ${extConfigPath}`);
+                console.log(`[auto-synthshell-colors] synth-shell-prompt.sh updated -> ${extConfigPath}`);
             } else {
-                log('[auto-synthshell-colors] synth-shell-prompt.sh already up-to-date for this color');
+                console.log('[auto-synthshell-colors] synth-shell-prompt.sh already up-to-date for this color');
             }
         } catch (e) {
-            log(`[auto-synthshell-colors] error updating main script: ${e}`);
+            console.log(`[auto-synthshell-colors] error updating main script: ${e}`);
         }
     }
 
@@ -120,14 +106,14 @@ export default class AutoSynthColorsExtension extends Extension {
         const mainFile = Gio.File.new_for_path(mainPath);
 
         if (!mainFile.query_exists(null)) {
-            log(`[auto-synthshell-colors] main script not found for restore: ${mainPath}`);
+            console.log(`[auto-synthshell-colors] main script not found for restore: ${mainPath}`);
             return;
         }
 
         try {
             let [ok, raw] = GLib.file_get_contents(mainPath);
             if (!ok) return;
-            let contents = imports.byteArray.toString(raw);
+            let contents = new TextDecoder().decode(raw);
             const original = contents;
 
             contents = contents.replace(
@@ -145,13 +131,12 @@ export default class AutoSynthColorsExtension extends Extension {
 
             if (contents !== original) {
                 GLib.file_set_contents(mainPath, contents);
-                log('[auto-synthshell-colors] synth-shell-prompt.sh restored to defaults');
+                console.log('[auto-synthshell-colors] synth-shell-prompt.sh restored to defaults');
             } else {
-                log('[auto-synthshell-colors] synth-shell-prompt.sh already at defaults');
+                console.log('[auto-synthshell-colors] synth-shell-prompt.sh already at defaults');
             }
         } catch (e) {
-            log(`[auto-synthshell-colors] error restoring main script: ${e}`);
+            console.log(`[auto-synthshell-colors] error restoring main script: ${e}`);
         }
     }
 }
-
